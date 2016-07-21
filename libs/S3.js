@@ -42,18 +42,17 @@ function putObject(bucket, key, buffer, headers, acl) {
             Bucket: bucket,
             Key: key,
             Body: buffer,
-            Metadata: {"img-processed": "true"},
             ContentType: headers.ContentType,
             CacheControl: headers.CacheControl
         };
         if( acl ){
             params['ACL'] = acl;
         }
-        client.putObject(params, function(err) {
+        client.putObject(params, function(err, data) {
             if ( err ) {
                 reject(err);
             } else {
-                resolve("S3 putObject success");
+                resolve(data);
             }
         });
     });
