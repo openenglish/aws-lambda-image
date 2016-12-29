@@ -1,0 +1,28 @@
+{
+  "source-bucket": "rawimages.openenglish.com",
+  "source-directory": "profile/",
+  "bucket": "images.openenglish.com",
+  "acl": "public-read",
+  "resizes": [
+    {
+      "width": 42,
+      "height": 42,
+      "directory": "profile/42"
+    },
+    {
+      "width": 123,
+      "height": 123,
+     "directory": "profile/123"
+    },
+    {
+      "width": 302,
+      "height": 302,
+      "directory": "profile/302"
+    },
+    {
+      "width": 600,
+      "height": 600,
+      "directory": "profile/600"
+    }
+  ]
+}

@@ -25,16 +25,17 @@ exports.handler = function(event, context) {
     if(event.base64Image) {
         var buffer = new Buffer(event.base64Image, 'base64');
         var headers = { ContentType: 'image/jpeg', CacheControl: 'no-cache' };
-        S3.putObject(config.get("source-bucket") , event.fileName , buffer, headers)
+        var fullname = config.get("source-directory") + event.fileName;
+        S3.putObject(config.get("source-bucket") , fullname, buffer, headers)
         .then(function(data) {
             console.log(event.fileName + " uploaded.");
             s3Object = {object: {eTag : '', key: '', size: 1}, bucket: {name: ''}};
             _.update(s3Object, 'object.eTag', function(originalValue) { return data.ETag});
-            _.update(s3Object, 'object.key', function(originalValue) { return event.fileName});
+            _.update(s3Object, 'object.key', function(originalValue) { return fullname});
             _.update(s3Object, 'object.size', function(originalValue) { return 1});
             _.update(s3Object, 'bucket.name', function(originalValue) { return config.get("source-bucket")});
 
-            console.log("s3Object: " + s3Object);
+            console.log("s3Object: " + s3Object.object.key);
             var processor  = new ImageProcessor(s3Object);
             processor.run(config)
             .then(function(proceedImages) {
