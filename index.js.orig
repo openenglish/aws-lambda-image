@@ -5,15 +5,14 @@
  * @author Yoshiaki Sugimoto
  * @created 2015/10/29
  */
-"use strict";
-const ImageData    = require("./libs/ImageData");
-const ImageProcessor = require("./libs/ImageProcessor");
-const Config         = require("./libs/Config");
-const S3             = require("./libs/S3");
-const fs             = require("fs");
-const path           = require("path");
-const _ 			 = require('lodash');
+<<<<<<< HEAD
+var ImageProcessor = require("./libs/ImageProcessor");
+var Config         = require("./libs/Config");
+var S3             = require("./libs/S3");
 
+var _ = require('lodash');
+var fs   = require("fs");
+var path = require("path");
 
 // Lambda Handler
 exports.handler = function(event, context) {
@@ -26,16 +25,9 @@ exports.handler = function(event, context) {
 
     if(event.base64Image) {
         var buffer = new Buffer(event.base64Image, 'base64');
-        var headers = { ContentType: 'image/jpeg', CacheControl: 'no-cache', ImgProcessed: 'false' };
+        var headers = { ContentType: 'image/jpeg', CacheControl: 'no-cache' };
         var fullname = config.get("source-directory") + event.fileName;
-        //S3.putObject(config.get("source-bucket") , fullname, buffer, headers)
-        S3.putObject(new ImageData(
-                fullname,
-                config.get("source-bucket"),
-                buffer,
-                headers,
-                config.get("acl")
-            ))
+        S3.putObject(config.get("source-bucket") , fullname, buffer, headers)
         .then(function(data) {
             console.log(event.fileName + " uploaded.");
             s3Object = {object: {eTag : '', key: '', size: 1}, bucket: {name: ''}};
@@ -48,8 +40,8 @@ exports.handler = function(event, context) {
             var processor  = new ImageProcessor(s3Object);
             processor.run(config)
             .then(function(proceedImages) {
-                console.log("OK, numbers of " + proceedImages + " images has proceeded.");
-                context.succeed("OK, numbers of " + proceedImages + " images has proceeded.");
+                console.log("OK, numbers of " + proceedImages.length + " images has proceeded.");
+                context.succeed("OK, numbers of " + proceedImages.length + " images has proceeded.");
             })
             .catch(function(messages) {
                 if(messages == "Object was already processed."){
@@ -65,20 +57,38 @@ exports.handler = function(event, context) {
             console.log(message);
             context.fail("Woops, image upload failed: " + message);
         }); 
-    } else {
-        processor.run(config)
-        .then((processedImages) => {
-            var message = "OK, " + processedImages + " images were processed.";
-            console.log(message);
-            context.succeed(message);
-        })
-        .catch((messages) => {
-            if ( messages === "Object was already processed." ) {
-                console.log("Image already processed");
-                context.succeed("Image already processed");
-            } else {
-                context.fail("Error processing " + s3Object.object.key + ": " + messages);
-            }
-        });
-	}    
+    }
+    
+=======
+"use strict";
+
+const ImageProcessor = require("./libs/ImageProcessor");
+const Config         = require("./libs/Config");
+const fs             = require("fs");
+const path           = require("path");
+
+// Lambda Handler
+exports.handler = (event, context) => {
+    const s3Object   = event.Records[0].s3;
+    const configPath = path.resolve(__dirname, "config.json");
+    const processor  = new ImageProcessor(s3Object);
+    const config     = new Config(
+        JSON.parse(fs.readFileSync(configPath, { encoding: "utf8" }))
+    );
+
+    processor.run(config)
+    .then((processedImages) => {
+        var message = "OK, " + processedImages + " images were processed.";
+        console.log(message);
+        context.succeed(message);
+    })
+    .catch((messages) => {
+        if ( messages === "Object was already processed." ) {
+            console.log("Image already processed");
+            context.succeed("Image already processed");
+        } else {
+            context.fail("Error processing " + s3Object.object.key + ": " + messages);
+        }
+    });
+>>>>>>> ysugimoto/master
 };

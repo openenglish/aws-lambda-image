@@ -31,14 +31,40 @@ class S3 {
                     key,
                     bucket,
                     data.Body,
-                    { ContentType: data.ContentType, CacheControl: data.CacheControl, ImgProcessed: 'true'  },
+                    { ContentType: data.ContentType, CacheControl: data.CacheControl },
                     acl
                 ));
             });
         });
     }
 
-
+<<<<<<< HEAD
+/**
+ * Put object data to S3 bucket
+ *
+ * @param String bucket
+ * @param String key
+ * @param Buffer buffer
+ * @return Promise
+ */
+function putObject(bucket, key, buffer, headers, acl) {
+    return new Promise(function(resolve, reject) {
+        var params = {
+            Bucket: bucket,
+            Key: key,
+            Body: buffer,
+            ContentType: headers.ContentType,
+            CacheControl: headers.CacheControl
+        };
+        if( acl ){
+            params['ACL'] = acl;
+        }
+        client.putObject(params, function(err, data) {
+            if ( err ) {
+                reject(err);
+            } else {
+                resolve(data);
+=======
     /**
      * Put object data to S3 bucket
      *
@@ -53,14 +79,14 @@ class S3 {
                 Bucket:       image.bucketName,
                 Key:          image.fileName,
                 Body:         image.data,
-                Metadata:     image.headers.ImgProcessed == 'true' ? { "img-processed":  'true'} : {},
+                Metadata:     { "img-processed": "true" },
                 ContentType:  image.headers.ContentType,
                 CacheControl: image.headers.CacheControl
             };
 
             if ( image.acl ) {
                 params.ACL = image.acl;
-
+>>>>>>> ysugimoto/master
             }
             console.log("Uploading to: " + params.Key + " (" + params.Body.length + " bytes)");
             client.putObject(params, (err) => {

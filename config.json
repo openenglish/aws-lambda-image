@@ -5,24 +5,22 @@
   "acl": "public-read",
   "resizes": [
     {
-      "width": 42,
-      "height": 42,
+      "size": "42x42^",
+      "gravity": "Center",
+      "crop": "42x42",
       "directory": "profile/42"
     },
     {
-      "width": 123,
-      "height": 123,
+      "size": "123x123^",
+      "gravity": "Center",
+      "crop": "123x123",
      "directory": "profile/123"
     },
     {
-      "width": 302,
-      "height": 302,
+      "size": "302x302^",
+      "gravity": "Center",
+      "crop": "302x302",
       "directory": "profile/302"
-    },
-    {
-      "width": 600,
-      "height": 600,
-      "directory": "profile/600"
     }
   ]
 }
