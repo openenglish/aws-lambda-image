@@ -8,7 +8,7 @@ An AWS Lambda Function to resize/reduce images automatically. When an image is p
 
 ### Requirements
 
-- `node.js` ( AWS Lambda working version is **0.10.26** )
+- `node.js` ( AWS Lambda working version is **4.3.2** )
 - `make`
 
 ### Installation
@@ -44,34 +44,65 @@ Configuration is simple, see below:
 ```json
 {
   "bucket": "your-destination-bucket",
+  "backup": {
+      "directory": "./original",
+  },
   "reduce": {
-      "directory": "reduced"
+      "directory": "./reduced",
+      "prefix": "reduced-",
+      "quality": 90
   },
   "resizes": [
     {
       "size": 300,
-      "directory": "resized/small"
+      "directory": "./resized/small",
+      "prefix": "resized-",
+    },
+    {
+      "size": "600x600^",
+      "gravity": "Center",
+      "crop": "600x600",
+      "directory": "./resized/cropped-to-square"
     },
     {
       "size": 600,
-      "directory": "resized/middle"
+      "directory": "./resized/600-jpeg",
+      "format": "jpg",
+      "background": "white"
     },
     {
       "size": 900,
-      "directory": "resized/large"
+      "directory": "./resized/large",
+      "quality": 90
     }
   ]
 }
 ```
 
-- `bucket`: [String] Destination bucket name at S3 to put processed image. If not supplied, it will use same bucket of event source.
-- `reduce`: [Object] Reduce setting.
-  - `directory`: [String] Image directory path.
-  - `bucket`: [Object] Destination bucket to override. If not supplied, it will use `bucket` setting.
-- `resizes`: [Array] Resize setting.
-  - `size`: [Number] Image width.
-  - `directory`: [String] Image directory path.
-  - `bucket`: [Object] Destination bucket to override. If not supplied, it will use `bucket` setting.
+#### Configuration Parameters
+
+|  name  |    field    |   type  |                                                               description                                                               |
+|:------:|:-----------:|:-------:|---------------------------------------------------------------------------------------------------------------------------------------  |
+| bucket |      -      |  String | Destination bucket name at S3 to put processed image. If not supplied, it will use same bucket of event source.                         |
+| backup |      -      |  Object | Backup original file setting.                                                                                                           |
+|        |  directory  |  String | Image directory path. When starts with `./` relative to the source, otherwise creates a new tree.                                       |
+|        |    bucket   |  String | Destination bucket to override. If not supplied, it will use `bucket` setting.                                                          |
+| reduce |      -      |  Object | Reduce setting following fields.                                                                                                        |
+|        |  directory  |  String | Image directory path. When starts with `./` relative to the source, otherwise creates a new tree.                                       |
+|        |    prefix   |  String | Append filename prefix if supplied.                                                                                                     |
+|        |   quality   |  Number | Determine reduced image quality ( enables only `JPG` ).                                                                                 |
+|        |    bucket   |  String | Destination bucket to override. If not supplied, it will use `bucket` setting.                                                          |
+| resize |      -      |  Array  | Resize setting list of following fields.                                                                                                |
+|        |  background |  String | Background color to use for transparent pixels when destination image doesn't support transparency.                                     |
+|        |    bucket   |  String | Destination bucket to override. If not supplied, it will use `bucket` setting.                                                          |
+|        |     crop    |  String | Dimensions to crop the image. [See ImageMagick crop documentation](http://imagemagick.org/script/command-line-options.php#crop).        |
+|        |  directory  |  String | Image directory path. When starts with `./` relative to the source, otherwise creates a new tree.                                       |
+|        |    prefix   |  String | Append filename prefix if supplied.                                                                                                     |
+|        |    format   |  String | Image format override. If not supplied, it will leave the image in original format.                                                     |
+|        |   gravity   |  String | Changes how `size` and `crop`. [See ImageMagick gravity documentation](http://imagemagick.org/script/command-line-options.php#gravity). |
+|        |   quality   |  Number | Determine reduced image quality ( enables only `JPG` ).                                                                                 |
+|        |     size    |  String | Image dimensions. [See ImageMagick geometry documentation](http://imagemagick.org/script/command-line-processing.php#geometry).         |
+|        | orientation | Boolean | Auto orientation if value is `true`.                                                                                                    |
 
 If you want to check how this works with your configuration, you can use `configtest`:
 
@@ -81,7 +112,7 @@ $ make configtest
 
 ### Complete / Failed hooks
 
-You can handle resize/reduce process on success/error result on `index.js`. `ImageProcessor::run` will return `Promise` object, run your original code:
+You can handle resize/reduce/backup process on success/error result on `index.js`. `ImageProcessor::run` will return `Promise` object, run your original code:
 
 ```javascript
 processor.run(config)

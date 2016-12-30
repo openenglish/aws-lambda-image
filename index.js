@@ -5,13 +5,14 @@
  * @author Yoshiaki Sugimoto
  * @created 2015/10/29
  */
-var ImageProcessor = require("./libs/ImageProcessor");
-var Config         = require("./libs/Config");
-var S3             = require("./libs/S3");
+"use strict";
+const ImageProcessor = require("./libs/ImageProcessor");
+const Config         = require("./libs/Config");
+const S3             = require("./libs/S3");
+const fs             = require("fs");
+const path           = require("path");
+const _ 			 = require('lodash');
 
-var _ = require('lodash');
-var fs   = require("fs");
-var path = require("path");
 
 // Lambda Handler
 exports.handler = function(event, context) {
@@ -56,6 +57,20 @@ exports.handler = function(event, context) {
             console.log(message);
             context.fail("Woops, image upload failed: " + message);
         }); 
-    }
-    
+    } else {
+    processor.run(config)
+    .then((processedImages) => {
+        var message = "OK, " + processedImages + " images were processed.";
+        console.log(message);
+        context.succeed(message);
+    })
+    .catch((messages) => {
+        if ( messages === "Object was already processed." ) {
+            console.log("Image already processed");
+            context.succeed("Image already processed");
+        } else {
+            context.fail("Error processing " + s3Object.object.key + ": " + messages);
+        }
+    });
+	}    
 };
